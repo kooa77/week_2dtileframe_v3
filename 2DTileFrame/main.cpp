@@ -1,6 +1,5 @@
 #include <Windows.h>
-
-// check 5
+#include <d3d9.h>
 #include "GameTimer.h"
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -33,6 +32,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 // int nCmdShow : 응용프로그램 표시 방식. 크게 보일 것인가, 작게 보일 것인가?
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow)
 {
+	int width = 1024;
+	int height = 768;
+	bool isWindow = false;
+
 	WNDCLASS wc;
 	wc.style = CS_HREDRAW | CS_VREDRAW;	// 창의 스타일 지정. 수평/수직 크기가 변하면 창을 다시 갱신
 	wc.lpfnWndProc = WndProc;	// 프로시저 함수. 윈도우 운영체제가 보내는 이벤트를 처리하기 위한 함수
@@ -54,7 +57,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 		L"2D Tile Frame",		// 창의 제목
 		WS_OVERLAPPEDWINDOW,	// 윈도우 스타일. 캡션이 있을 것인지, 메뉴가 있을 것인지 등등
 		CW_USEDEFAULT, CW_USEDEFAULT,	// x, y 좌표
-		1024, 768,	// 너비, 높이
+		width, height,	// 너비, 높이
 		0,		// 부모 창의 핸들을 세팅한다. 현재 최상위 창이므로 0을 세팅한다.
 		0,		// 메뉴 핸들. 사용하지 않음
 		hInstance,	// 윈도우 운영체제가 부여한 인스턴스 핸들을 세팅한다. 현재 창과 연결. 운영체제가 관리할 수 있다.
@@ -70,11 +73,57 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 
-	// check 3 : fps 결정 (60)
+	// 실제 게임 영역 확보
+	if (true == isWindow)
+	{
+		RECT clientRect;
+		GetClientRect(hWnd, &clientRect);
+		MoveWindow(hWnd, 0, 0,
+			width + (width - clientRect.right),
+			height + (height - clientRect.bottom),
+			TRUE);
+	}
+
+	// DirectX
+
+	// 누군가가(DirectX)한테 하드웨어 직접 접근할 수 있는
+	// 먼가(Device)를 생성해서 달라고 요청
+	LPDIRECT3D9 direct3d;	// 그래픽을 담당하는 DirectX
+	direct3d = Direct3DCreate9(D3D_SDK_VERSION);
+	if (NULL == direct3d)
+	{
+		return 0;
+	}
+
+	// Device를 생성하기 전에,
+	// Device를 통해서 화면에 어떻게 보여질지를 결정
+	D3DPRESENT_PARAMETERS d3dpp;
+	ZeroMemory(&d3dpp, sizeof(d3dpp));
+	d3dpp.BackBufferWidth = width;
+	d3dpp.BackBufferHeight = height;
+	d3dpp.BackBufferFormat = D3DFMT_UNKNOWN;
+	d3dpp.BackBufferCount = 1;	// 더블 버퍼링 갯수
+	d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
+	d3dpp.hDeviceWindow = hWnd;
+	d3dpp.Windowed = isWindow;
+	d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+
+	// 디바이스를 생성
+	LPDIRECT3DDEVICE9 dxDevice;
+	HRESULT hr = direct3d->CreateDevice(
+		D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL,
+		hWnd,
+		D3DCREATE_HARDWARE_VERTEXPROCESSING,
+		&d3dpp,
+		&dxDevice);
+	if (FAILED(hr))
+	{
+		return 0;
+	}
+
 	float frameInterval = 1.0f / 60.0f;
 	float frameTime = 0.0f;
 
-	// check 4
 	GameTimer gameTimer;
 	gameTimer.Init();
 
@@ -90,18 +139,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 		}
 		else
 		{
-			// check 2
 			gameTimer.Update();
 			float deltaTime = gameTimer.GetDeltaTime();		// 지난 프레임부터 지금까지 흐른 시간의 차이
 
-			// check 1 : 프레임에 맞게 업데이트
 			frameTime += deltaTime;	// 시간이 흐른다.
 			if (frameInterval <= frameTime)
 			{
 				frameTime = 0.0f;
 
-				// todo : game update
-				OutputDebugString(L"Update\n");
+				// 매 프레임마다 화면의 색을 채운다.
+				dxDevice->Clear(0, NULL,
+					D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 128, 0),
+					0.0f, 0);
+				
+				// 채운 색을 모니터를 통해 보여준다.
+				dxDevice->Present(NULL, NULL, NULL, NULL);
 			}
 		}
 	}
