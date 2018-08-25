@@ -1,5 +1,5 @@
 #include <Windows.h>
-#include <d3d9.h>
+#include <d3dx9.h>
 #include "GameTimer.h"
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -34,7 +34,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 {
 	int width = 1024;
 	int height = 768;
-	bool isWindow = false;
+	bool isWindow = true;
 
 	WNDCLASS wc;
 	wc.style = CS_HREDRAW | CS_VREDRAW;	// 창의 스타일 지정. 수평/수직 크기가 변하면 창을 다시 갱신
@@ -52,10 +52,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 		return 0;
 	}
 
+	// 풀스크린 모드일 때는, 윈도우에 부가적인 요소를 제거한다.
+	DWORD style;
+	if (isWindow)
+	{
+		style = WS_OVERLAPPEDWINDOW;
+	}
+	else
+	{
+		style = WS_EX_TOPMOST | WS_VISIBLE | WS_POPUP;
+	}
+
 	HWND hWnd = CreateWindow(
 		L"2DTileFrameWnd",		// 사용할 윈도우 스타일. 등록된 윈도우 스타일 들 중에서 이름을 통해 가지고 온다. 직접 등록할 수도 있다.
 		L"2D Tile Frame",		// 창의 제목
-		WS_OVERLAPPEDWINDOW,	// 윈도우 스타일. 캡션이 있을 것인지, 메뉴가 있을 것인지 등등
+		style,	// 윈도우 스타일. 캡션이 있을 것인지, 메뉴가 있을 것인지 등등
 		CW_USEDEFAULT, CW_USEDEFAULT,	// x, y 좌표
 		width, height,	// 너비, 높이
 		0,		// 부모 창의 핸들을 세팅한다. 현재 최상위 창이므로 0을 세팅한다.
@@ -95,13 +106,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 		return 0;
 	}
 
+	D3DFORMAT format;
+	if (isWindow)
+	{
+		format = D3DFMT_UNKNOWN;	// 윈도우 설정에 맡긴다.
+	}
+	else
+	{
+		format = D3DFMT_X8R8G8B8;	// 전용 색상 포맷을  사용.
+	}
+
 	// Device를 생성하기 전에,
 	// Device를 통해서 화면에 어떻게 보여질지를 결정
 	D3DPRESENT_PARAMETERS d3dpp;
 	ZeroMemory(&d3dpp, sizeof(d3dpp));
 	d3dpp.BackBufferWidth = width;
 	d3dpp.BackBufferHeight = height;
-	d3dpp.BackBufferFormat = D3DFMT_UNKNOWN;
+	d3dpp.BackBufferFormat = format;
 	d3dpp.BackBufferCount = 1;	// 더블 버퍼링 갯수
 	d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
 	d3dpp.hDeviceWindow = hWnd;
@@ -119,6 +140,58 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 	if (FAILED(hr))
 	{
 		return 0;
+	}
+
+	// Sprite COM 인터페이스 생성
+	ID3DXSprite* spriteDX;
+	hr = D3DXCreateSprite(dxDevice, &spriteDX);
+	if (FAILED(hr))
+	{
+		return 0;
+	}
+
+	// 이미지 로드
+	IDirect3DTexture9* textureDX;
+	RECT textureRect;
+	D3DCOLOR textureColor;
+	{
+		// 로드 할 파일명
+		LPCWSTR fileName = L"../Resources/Images/character_sprite.png";
+
+		// 파일로 부터 이미지의 너비와 높이를 얻는다
+		D3DXIMAGE_INFO texInfo;
+		hr = D3DXGetImageInfoFromFile(fileName, &texInfo);
+		if (FAILED(hr))
+		{
+			return 0;
+		}
+
+		// 이미지데이타 로드
+		hr = D3DXCreateTextureFromFileEx(dxDevice,
+			fileName,
+			texInfo.Width, texInfo.Height,
+			1,
+			0,
+			D3DFMT_UNKNOWN,
+			D3DPOOL_DEFAULT,
+			D3DX_DEFAULT,
+			D3DX_DEFAULT,
+			D3DCOLOR_ARGB(255, 255, 255, 255),
+			&texInfo,
+			NULL,
+			&textureDX);
+		if (FAILED(hr))
+		{
+			return 0;
+		}
+		
+		// 출력할 영역 지정
+		textureRect.left = 0;
+		textureRect.right = textureRect.left + texInfo.Width;
+		textureRect.top = 0;
+		textureRect.bottom = textureRect.top + texInfo.Height;
+
+		textureColor = D3DCOLOR_ARGB(255, 255, 255, 255);
 	}
 
 	float frameInterval = 1.0f / 60.0f;
@@ -147,15 +220,41 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 			{
 				frameTime = 0.0f;
 
-				// 매 프레임마다 화면의 색을 채운다.
-				dxDevice->Clear(0, NULL,
-					D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 128, 0),
-					0.0f, 0);
-				
-				// 채운 색을 모니터를 통해 보여준다.
-				dxDevice->Present(NULL, NULL, NULL, NULL);
+				dxDevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 128, 0), 0.0f, 0);	// 매 프레임마다 화면의 색을 채운다.
+				{
+					dxDevice->BeginScene();
+					{
+						// Scene 작업 : 게임 화면과 관련된 모든 작업 공간
+						spriteDX->Begin(D3DXSPRITE_ALPHABLEND);
+						{
+							// 2D 이미지 출력 공간. Texture(텍스쳐)
+							spriteDX->Draw(
+								textureDX,		// 그릴 텍스쳐 정보가 들어있는 인터페이스
+								&textureRect,	// 원본 이미지에서 그릴 부분
+								NULL,
+								NULL,
+								textureColor	// 스프라이트의 색상과 알파채널
+							);
+						}
+						spriteDX->End();
+					}
+					dxDevice->EndScene();
+				}
+				dxDevice->Present(NULL, NULL, NULL, NULL);	// 채운 색을 모니터를 통해 보여준다.
 			}
 		}
+	}
+
+	if (dxDevice)
+	{
+		dxDevice->Release();
+		dxDevice = NULL;
+	}
+
+	if (direct3d)
+	{
+		direct3d->Release();
+		direct3d = NULL;
 	}
 
 	return 0;
