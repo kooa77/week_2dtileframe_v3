@@ -154,12 +154,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 	IDirect3DTexture9* textureDX;
 	RECT textureRect;
 	D3DCOLOR textureColor;
+	LPCWSTR fileName = L"../Resources/Images/character_sprite.png";
+	D3DXIMAGE_INFO texInfo;
 	{
-		// 로드 할 파일명
-		LPCWSTR fileName = L"../Resources/Images/character_sprite.png";
-
 		// 파일로 부터 이미지의 너비와 높이를 얻는다
-		D3DXIMAGE_INFO texInfo;
 		hr = D3DXGetImageInfoFromFile(fileName, &texInfo);
 		if (FAILED(hr))
 		{
@@ -238,6 +236,68 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 						}
 						spriteDX->End();
 					}
+
+					// DeviceLost 처리
+					// Device 상태 확인 (매 업데이트 마다)
+					hr = dxDevice->TestCooperativeLevel();
+					if (FAILED(hr))// Device 상태에 문제가 있으면,
+					{
+						// 세 종류의 문제에 따라 다르게 처리
+						if (D3DERR_DEVICELOST == hr)
+						{
+							// 현재 우리가 아무 것도 할 수 없는 상태
+							Sleep(100);	// 쉰다
+						}
+						else if(D3DERR_DEVICENOTRESET == hr)
+						{
+							// 망가진 상태이지만, 이제는 복구가 가능한 상태.
+							// 지금부터 복구를 진행 하시오.
+
+							// 디바이스와 그 외 디바이스를 통해생성된 모든 리소스를 복구
+							// 1. 기존에 만들어진 것들을 모두 리셋
+							if (textureDX)
+							{
+								textureDX->Release();
+								textureDX = NULL;
+							}
+
+							// 2. 새로 생성 (복구)
+							direct3d = Direct3DCreate9(D3D_SDK_VERSION);
+							if (NULL != direct3d)
+							{
+								// 디바이스 생성
+								HRESULT hr = direct3d->CreateDevice(
+									D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL,
+									hWnd,
+									D3DCREATE_HARDWARE_VERTEXPROCESSING,
+									&d3dpp,
+									&dxDevice);
+								if (SUCCEEDED(hr))
+								{
+									// 스프라이트 인터페이스 생성
+									hr = D3DXCreateSprite(dxDevice, &spriteDX);
+									if (SUCCEEDED(hr))
+									{
+										// 텍스쳐 복구
+										hr = D3DXCreateTextureFromFileEx(dxDevice,
+											fileName,
+											texInfo.Width, texInfo.Height,
+											1,
+											0,
+											D3DFMT_UNKNOWN,
+											D3DPOOL_DEFAULT,
+											D3DX_DEFAULT,
+											D3DX_DEFAULT,
+											D3DCOLOR_ARGB(255, 255, 255, 255),
+											&texInfo,
+											NULL,
+											&textureDX);
+									}
+								}
+							}
+						}
+					}
+
 					dxDevice->EndScene();
 				}
 				dxDevice->Present(NULL, NULL, NULL, NULL);	// 채운 색을 모니터를 통해 보여준다.
