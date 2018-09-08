@@ -1,6 +1,10 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <d3dx9.h>
+
+class Frame;
 
 class Sprite
 {
@@ -9,11 +13,14 @@ private:
 	ID3DXSprite * _spriteDX;
 
 	IDirect3DTexture9* _textureDX;
-	RECT _textureRect;
-	D3DCOLOR _textureColor;
-
+	
 	std::wstring _fileName;
 	D3DXIMAGE_INFO _texInfo;
+
+	//Frame* _frame;
+	std::vector<Frame*> _frameList;
+	int _frameIdx;
+	float _frameDuration;
 
 public:
 	Sprite();	// »ý¼ºÀÚ (Constructor)
@@ -22,6 +29,7 @@ public:
 	void Init(std::wstring fileName,
 		LPDIRECT3DDEVICE9 dxDevice,
 		ID3DXSprite * spriteDX);
+	void Update(float deltaTime);
 	void Render();
 	void Release();
 	void Reset();

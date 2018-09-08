@@ -182,6 +182,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 			gameTimer.Update();
 			float deltaTime = gameTimer.GetDeltaTime();		// 지난 프레임부터 지금까지 흐른 시간의 차이
 
+			testSprite->Update(deltaTime);
+
 			frameTime += deltaTime;	// 시간이 흐른다.
 			if (frameInterval <= frameTime)
 			{

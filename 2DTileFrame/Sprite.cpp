@@ -1,4 +1,5 @@
 #include <d3dx9.h>
+#include "Frame.h"
 #include "Sprite.h"
 
 Sprite::Sprite()
@@ -7,6 +8,12 @@ Sprite::Sprite()
 
 Sprite::~Sprite()
 {
+	for (int i = 0; i < _frameList.size(); i++)
+	{
+		delete _frameList[i];
+	}
+	_frameList.clear();
+
 	if (_textureDX)
 	{
 		_textureDX->Release();
@@ -50,26 +57,62 @@ void Sprite::Init(std::wstring fileName,
 			return;
 		}
 
-		// 출력할 영역 지정
-		_textureRect.left = 64;
-		_textureRect.right = _textureRect.left + 32;
-		_textureRect.top = 96;
-		_textureRect.bottom = _textureRect.top + 32;
+		{
+			Frame* frame = new Frame();
+			frame->Init(_spriteDX, _textureDX, 0, 0, 32, 32, 0.1f);
+			_frameList.push_back(frame);
+		}
+		{
+			Frame* frame = new Frame();
+			frame->Init(_spriteDX, _textureDX, 64, 0, 32, 32, 0.1f);
+			_frameList.push_back(frame);
+		}
+		{
+			Frame* frame = new Frame();
+			frame->Init(_spriteDX, _textureDX, 0, 0, 32, 32, 0.4f);
+			_frameList.push_back(frame);
+		}
+		{
+			Frame* frame = new Frame();
+			frame->Init(_spriteDX, _textureDX, 64, 0, 32, 32, 0.4f);
+			_frameList.push_back(frame);
+		}
+		{
+			Frame* frame = new Frame();
+			frame->Init(_spriteDX, _textureDX, 0, 0, 32, 32, 0.2f);
+			_frameList.push_back(frame);
+		}
+		{
+			Frame* frame = new Frame();
+			frame->Init(_spriteDX, _textureDX, 64, 0, 32, 32, 0.2f);
+			_frameList.push_back(frame);
+		}
+		_frameIdx = 0;
+		_frameDuration = 0.0f;
+	}
+}
 
-		_textureColor = D3DCOLOR_ARGB(255, 255, 255, 255);
+void Sprite::Update(float deltaTime)
+{
+	// 현재 프레임이 출력된 후 흐른 시간
+	_frameDuration += deltaTime;
+	if (_frameList[_frameIdx]->GetFrameInterval() <= _frameDuration)
+	{
+		_frameDuration = 0.0f;
+		_frameIdx++;
+		if (_frameList.size() <= _frameIdx)
+		{
+			_frameIdx = 0;
+		}
 	}
 }
 
 void Sprite::Render()
 {
-	// 2D 이미지 출력 공간. Texture(텍스쳐)
-	_spriteDX->Draw(
-		_textureDX,		// 그릴 텍스쳐 정보가 들어있는 인터페이스
-		&_textureRect,	// 원본 이미지에서 그릴 부분
-		NULL,
-		NULL,
-		_textureColor	// 스프라이트의 색상과 알파채널
-	);
+	if (_frameIdx < _frameList.size())
+	{
+		_frameList[_frameIdx]->Render();
+	}
 }
 
 void Sprite::Release()
@@ -92,4 +135,9 @@ void Sprite::Reset()
 		&_texInfo,
 		NULL,
 		&_textureDX);
+
+	for (int i = 0; i < _frameList.size(); i++)
+	{
+		_frameList[i]->Reset();
+	}
 }
