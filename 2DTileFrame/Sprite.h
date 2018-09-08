@@ -12,9 +12,12 @@ private:
 	RECT _textureRect;
 	D3DCOLOR _textureColor;
 
+	std::wstring _fileName;
+	D3DXIMAGE_INFO _texInfo;
+
 public:
-	Sprite();
-	~Sprite();
+	Sprite();	// 생성자 (Constructor)
+	~Sprite();	// 해제자 (파괴자)(Destructor)
 
 	void Init(std::wstring fileName,
 		LPDIRECT3DDEVICE9 dxDevice,

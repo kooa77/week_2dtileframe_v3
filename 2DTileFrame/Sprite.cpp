@@ -7,21 +7,25 @@ Sprite::Sprite()
 
 Sprite::~Sprite()
 {
+	if (_textureDX)
+	{
+		_textureDX->Release();
+		_textureDX = NULL;
+	}
 }
 
 void Sprite::Init(std::wstring fileName,
 	LPDIRECT3DDEVICE9 dxDevice,
 	ID3DXSprite * spriteDX)
 {
+	_fileName = fileName;
 	_dxDevice = dxDevice;
 	_spriteDX = spriteDX;
 
 	HRESULT hr;
-
-	D3DXIMAGE_INFO texInfo;
 	{
 		// 파일로 부터 이미지의 너비와 높이를 얻는다
-		hr = D3DXGetImageInfoFromFile(fileName.c_str(), &texInfo);
+		hr = D3DXGetImageInfoFromFile(fileName.c_str(), &_texInfo);
 		if (FAILED(hr))
 		{
 			return;
@@ -30,7 +34,7 @@ void Sprite::Init(std::wstring fileName,
 		// 이미지데이타 로드
 		hr = D3DXCreateTextureFromFileEx(dxDevice,
 			fileName.c_str(),
-			texInfo.Width, texInfo.Height,
+			_texInfo.Width, _texInfo.Height,
 			1,
 			0,
 			D3DFMT_UNKNOWN,
@@ -38,7 +42,7 @@ void Sprite::Init(std::wstring fileName,
 			D3DX_DEFAULT,
 			D3DX_DEFAULT,
 			D3DCOLOR_ARGB(255, 255, 255, 255),
-			&texInfo,
+			&_texInfo,
 			NULL,
 			&_textureDX);
 		if (FAILED(hr))
@@ -47,10 +51,10 @@ void Sprite::Init(std::wstring fileName,
 		}
 
 		// 출력할 영역 지정
-		_textureRect.left = 0;
-		_textureRect.right = _textureRect.left + texInfo.Width;
-		_textureRect.top = 0;
-		_textureRect.bottom = _textureRect.top + texInfo.Height;
+		_textureRect.left = 64;
+		_textureRect.right = _textureRect.left + 32;
+		_textureRect.top = 96;
+		_textureRect.bottom = _textureRect.top + 32;
 
 		_textureColor = D3DCOLOR_ARGB(255, 255, 255, 255);
 	}
@@ -74,4 +78,18 @@ void Sprite::Release()
 
 void Sprite::Reset()
 {
+	// 텍스쳐 복구
+	HRESULT hr = D3DXCreateTextureFromFileEx(_dxDevice,
+		_fileName.c_str(),
+		_texInfo.Width, _texInfo.Height,
+		1,
+		0,
+		D3DFMT_UNKNOWN,
+		D3DPOOL_DEFAULT,
+		D3DX_DEFAULT,
+		D3DX_DEFAULT,
+		D3DCOLOR_ARGB(255, 255, 255, 255),
+		&_texInfo,
+		NULL,
+		&_textureDX);
 }

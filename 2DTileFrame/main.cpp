@@ -218,13 +218,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 							// 디바이스와 그 외 디바이스를 통해생성된 모든 리소스를 복구
 							// 1. 기존에 만들어진 것들을 모두 리셋
 							testSprite->Release();
-							/*
-							if (textureDX)
-							{
-								textureDX->Release();
-								textureDX = NULL;
-							}
-							*/
 
 							// 2. 새로 생성 (복구)
 							direct3d = Direct3DCreate9(D3D_SDK_VERSION);
@@ -244,22 +237,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 									if (SUCCEEDED(hr))
 									{
 										testSprite->Reset();
-										/*
-										// 텍스쳐 복구
-										hr = D3DXCreateTextureFromFileEx(dxDevice,
-											fileName,
-											texInfo.Width, texInfo.Height,
-											1,
-											0,
-											D3DFMT_UNKNOWN,
-											D3DPOOL_DEFAULT,
-											D3DX_DEFAULT,
-											D3DX_DEFAULT,
-											D3DCOLOR_ARGB(255, 255, 255, 255),
-											&texInfo,
-											NULL,
-											&textureDX);
-										*/
 									}
 								}
 							}
@@ -278,13 +255,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 	{
 		delete testSprite;
 	}
-	/*
-	if (textureDX)
-	{
-		textureDX->Release();
-		textureDX = NULL;
-	}
-	*/
 
 	if (dxDevice)
 	{
