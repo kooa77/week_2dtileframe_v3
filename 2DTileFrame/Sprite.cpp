@@ -57,16 +57,17 @@ void Sprite::Init(std::wstring fileName,
 			return;
 		}
 
-		{
+		{	// frame 1
 			Frame* frame = new Frame();
-			frame->Init(_spriteDX, _textureDX, 0, 0, 32, 32, 0.1f);
+			frame->Init(_spriteDX, _textureDX, 0, 0, 32, 32, 0.5f, D3DCOLOR_ARGB(255, 255, 255, 255));
 			_frameList.push_back(frame);
 		}
-		{
+		{	// frame 2
 			Frame* frame = new Frame();
-			frame->Init(_spriteDX, _textureDX, 64, 0, 32, 32, 0.1f);
+			frame->Init(_spriteDX, _textureDX, 64, 0, 32, 32, 0.5f, D3DCOLOR_ARGB(255, 255, 0, 0));
 			_frameList.push_back(frame);
 		}
+		/*
 		{
 			Frame* frame = new Frame();
 			frame->Init(_spriteDX, _textureDX, 0, 0, 32, 32, 0.4f);
@@ -87,6 +88,7 @@ void Sprite::Init(std::wstring fileName,
 			frame->Init(_spriteDX, _textureDX, 64, 0, 32, 32, 0.2f);
 			_frameList.push_back(frame);
 		}
+		*/
 		_frameIdx = 0;
 		_frameDuration = 0.0f;
 	}

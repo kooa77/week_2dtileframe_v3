@@ -11,7 +11,7 @@ Frame::~Frame()
 
 void Frame::Init(ID3DXSprite* spriteDX, IDirect3DTexture9* textureDX,
 	int left, int top, int width, int height,
-	float frameInterval)
+	float frameInterval, D3DCOLOR textureColor)
 {
 	_spriteDX = spriteDX;
 	_textureDX = textureDX;
@@ -23,19 +23,38 @@ void Frame::Init(ID3DXSprite* spriteDX, IDirect3DTexture9* textureDX,
 	_textureRect.top = top;
 	_textureRect.bottom = _textureRect.top + height;
 
-	_textureColor = D3DCOLOR_ARGB(255, 255, 255, 255);
+	_textureColor = textureColor;
+
+	_width = width;
+	_height = height;
 }
 
 void Frame::Render()
 {
-	// 2D 이미지 출력 공간. Texture(텍스쳐)
-	_spriteDX->Draw(
-		_textureDX,		// 그릴 텍스쳐 정보가 들어있는 인터페이스
-		&_textureRect,	// 원본 이미지에서 그릴 부분
-		NULL,
-		NULL,
-		_textureColor	// 스프라이트의 색상과 알파채널
-	);
+	// 확대 축소
+	D3DXVECTOR2 scale = D3DXVECTOR2(1.0f, 1.0f);
+
+	// 회전 중심
+	D3DXVECTOR2 rotCenter = D3DXVECTOR2(_width*0.5f, _height*0.5f);
+
+	// 회전 각도
+	float rot = 0.0f;
+
+	// 이동
+	D3DXVECTOR2 translate = D3DXVECTOR2(0.0f, 0.0f);
+
+	D3DXMATRIX matrix;	// 크기, 회전, 회전 중심, 회전 각도, 이동
+	D3DXMatrixTransformation2D(
+		&matrix,		// 연산 결과
+		NULL,		// 스케일의 중심점
+		0.0f,		// 확대 회전 시킬 때, x,y의 비율이 다를 경우 조정 값
+		&scale,		// 확대/축소
+		&rotCenter,	// 회전 중심점
+		rot,	// 회전 각도
+		&translate);
+
+	_spriteDX->SetTransform(&matrix);
+	_spriteDX->Draw(_textureDX, &_textureRect, NULL, NULL,_textureColor);	// 2D 이미지 출력 공간. Texture(텍스쳐)
 }
 
 void Frame::Reset()
