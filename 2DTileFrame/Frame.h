@@ -14,6 +14,7 @@ private:
 	float _frameInterval;
 	int _width;
 	int _height;
+	float _scale;
 
 public:
 	Frame();
@@ -21,7 +22,8 @@ public:
 
 	void Init(ID3DXSprite* spriteDX, IDirect3DTexture9* textureDX,
 		int left, int top, int right, int bottom,
-		float frameInterval, D3DCOLOR textureColor);
+		float frameInterval, D3DCOLOR textureColor,
+		float scale);
 	void Render();
 	void Reset();
 
