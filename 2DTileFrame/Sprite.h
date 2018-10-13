@@ -27,6 +27,7 @@ public:
 	~Sprite();	// 해제자 (파괴자)(Destructor)
 
 	void Init(std::wstring fileName,
+		std::wstring scriptFilename,
 		LPDIRECT3DDEVICE9 dxDevice,
 		ID3DXSprite * spriteDX);
 	void Update(float deltaTime);

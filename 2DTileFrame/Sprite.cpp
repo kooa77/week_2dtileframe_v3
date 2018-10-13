@@ -27,6 +27,7 @@ Sprite::~Sprite()
 }
 
 void Sprite::Init(std::wstring fileName,
+	std::wstring scriptName,
 	LPDIRECT3DDEVICE9 dxDevice,
 	ID3DXSprite * spriteDX)
 {
@@ -62,8 +63,8 @@ void Sprite::Init(std::wstring fileName,
 			return;
 		}
 
-		std::string fileName = "Test.json";
-		std::ifstream infile(fileName);
+		//std::string fileName = "Test.json";
+		std::ifstream infile(scriptName);
 		if (infile.is_open())
 		{
 			char recordString[1000];
