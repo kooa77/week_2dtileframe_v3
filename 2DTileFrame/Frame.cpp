@@ -36,7 +36,7 @@ void Frame::Render()
 	D3DXVECTOR2 scale = D3DXVECTOR2(_scale, _scale);	// 확대 축소
 	D3DXVECTOR2 rotCenter = D3DXVECTOR2(_width*0.5f, _height*0.5f);	// 회전 중심
 	float rot = 0.0f;	// 회전 각도
-	D3DXVECTOR2 translate = D3DXVECTOR2(100.0f-_width*0.5f, 100.0f-_height*0.5f);	// 이동
+	D3DXVECTOR2 translate = D3DXVECTOR2(_x-_width*0.5f, _y-_height*0.5f);	// 이동
 
 	D3DXMATRIX matrix;	// 크기, 회전, 회전 중심, 회전 각도, 이동
 	D3DXMatrixTransformation2D(
@@ -54,4 +54,10 @@ void Frame::Render()
 
 void Frame::Reset()
 {
+}
+
+void Frame::SetPosition(float x, float y)
+{
+	_x = x;
+	_y = y;
 }

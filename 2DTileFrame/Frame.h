@@ -31,4 +31,11 @@ public:
 	{
 		return _frameInterval;
 	}
+
+private:
+	float _x;
+	float _y;
+
+public:
+	void SetPosition(float x, float y);
 };

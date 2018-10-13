@@ -1,4 +1,9 @@
+#include <fstream>
+#include <string>
+
 #include <d3dx9.h>
+#include <reader.h>
+
 #include "Frame.h"
 #include "Sprite.h"
 
@@ -57,6 +62,38 @@ void Sprite::Init(std::wstring fileName,
 			return;
 		}
 
+		std::string fileName = "Test.json";
+		std::ifstream infile(fileName);
+		if (infile.is_open())
+		{
+			char recordString[1000];
+			while (false == infile.eof())
+			{
+				infile.getline(recordString, 1000);
+
+				// Parsing
+				Json::Value root;
+				Json::Reader reader;
+				bool isSuccess = reader.parse(recordString, root);
+				if (true == isSuccess)
+				{
+					// 파싱된 값을 적용
+					int x = root["x"].asInt();
+					int y = root["y"].asInt();
+					int width = root["width"].asInt();
+					int height = root["height"].asInt();
+					float frameInterval = root["frameInterval"].asDouble();
+
+					Frame* frame = new Frame();
+					frame->Init(_spriteDX, _textureDX,
+						x, y, width, height, frameInterval,
+						D3DCOLOR_ARGB(255, 255, 255, 255), 1.0f);
+					_frameList.push_back(frame);
+				}
+			}
+		}
+
+		/*
 		{	// frame 1
 			Frame* frame = new Frame();
 			frame->Init(_spriteDX, _textureDX, 0, 0, 32, 32, 0.5f, D3DCOLOR_ARGB(255, 255, 255, 255), 1.0f);
@@ -67,6 +104,7 @@ void Sprite::Init(std::wstring fileName,
 			frame->Init(_spriteDX, _textureDX, 64, 0, 32, 32, 0.5f, D3DCOLOR_ARGB(255, 255, 0, 0), 1.5f);
 			_frameList.push_back(frame);
 		}
+		*/
 		/*
 		{
 			Frame* frame = new Frame();
@@ -113,6 +151,7 @@ void Sprite::Render()
 {
 	if (_frameIdx < _frameList.size())
 	{
+		_frameList[_frameIdx]->SetPosition(_x, _y);
 		_frameList[_frameIdx]->Render();
 	}
 }
@@ -142,4 +181,10 @@ void Sprite::Reset()
 	{
 		_frameList[i]->Reset();
 	}
+}
+
+void Sprite::SetPosition(float x, float y)
+{
+	_x = x;
+	_y = y;
 }

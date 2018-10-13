@@ -33,4 +33,12 @@ public:
 	void Render();
 	void Release();
 	void Reset();
+
+	// À§Ä¡
+private:
+	float _x;
+	float _y;
+
+public:
+	void SetPosition(float x, float y);
 };

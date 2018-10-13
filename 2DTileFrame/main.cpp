@@ -196,7 +196,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 						// Scene 작업 : 게임 화면과 관련된 모든 작업 공간
 						spriteDX->Begin(D3DXSPRITE_ALPHABLEND);
 						{
-							testSprite->Render();
+							float startX = 0.0f;
+							float startY = 0.0f;
+							float posX = startX;
+							float posY = startY;
+							int tileSize = 32;
+							//testSprite->Render();
+							for (int y = 0; y < 16; y++)
+							{
+								for (int x = 0; x < 16; x++)
+								{
+									testSprite->SetPosition(posX, posY);
+									testSprite->Render();
+									posX += tileSize;
+								}
+								posX = startX;
+								posY += tileSize;
+							}
 						}
 						spriteDX->End();
 					}
