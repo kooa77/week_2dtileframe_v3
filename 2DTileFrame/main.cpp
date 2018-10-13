@@ -165,18 +165,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 		for (int x = 0; x < 16; x++)
 		{
 			//tileMapIndex[y][x] = rand() % 4;
-			tileMapIndex[y][x] = (idx++) % 4;
+			//tileMapIndex[y][x] = (idx++) % 4;
+			tileMapIndex[y][x] = idx++;	// 0 -> 255
 		}
 	}	
 
-	// 스프라이트를  생성
-	// 현재 : 1개의 스프라이트 생성
+	Map* map = new Map();
+	map->Init();
 	/*
-	Sprite* testSprite = new Sprite();
-	testSprite->Init(fileName, dxDevice, spriteDX);
-	*/
-	// 변경 : 16*16개의 스프라이트 생성
-	LPCWSTR fileName = L"../Resources/Images/character_sprite.png";
+	// 스프라이트를  생성
+	LPCWSTR fileName = L"../Resources/Images/PathAndObjects.png";
 	Sprite* tileSprite[16][16];
 	for (int y = 0; y < 16; y++)
 	{
@@ -205,7 +203,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 			tileSprite[y][x]->Init(fileName, scriptName, dxDevice, spriteDX);
 		}
 	}
-
+	*/
 
 	float frameInterval = 1.0f / 60.0f;
 	float frameTime = 0.0f;
@@ -228,7 +226,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 			gameTimer.Update();
 			float deltaTime = gameTimer.GetDeltaTime();		// 지난 프레임부터 지금까지 흐른 시간의 차이
 
-			//testSprite->Update(deltaTime);
+			map->Update(deltaTime);
+			/*
 			for (int y = 0; y < 16; y++)
 			{
 				for (int x = 0; x < 16; x++)
@@ -236,6 +235,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 					tileSprite[y][x]->Update(deltaTime);
 				}
 			}
+			*/
 
 			frameTime += deltaTime;	// 시간이 흐른다.
 			if (frameInterval <= frameTime)
@@ -249,6 +249,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 						// Scene 작업 : 게임 화면과 관련된 모든 작업 공간
 						spriteDX->Begin(D3DXSPRITE_ALPHABLEND);
 						{
+							map->Render();
+							/*
 							float startX = 0.0f;
 							float startY = 0.0f;
 							float posX = startX;
@@ -269,6 +271,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 								posX = startX;
 								posY += tileSize;
 							}
+							*/
 						}
 						spriteDX->End();
 					}
@@ -291,7 +294,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 
 							// 디바이스와 그 외 디바이스를 통해생성된 모든 리소스를 복구
 							// 1. 기존에 만들어진 것들을 모두 리셋
-							//testSprite->Release();
+							map->Release();
+							/*
 							for (int y = 0; y < 16; y++)
 							{
 								for (int x = 0; x < 16; x++)
@@ -299,6 +303,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 									tileSprite[y][x]->Release();
 								}
 							}
+							*/
 
 							// 2. 새로 생성 (복구)
 							direct3d = Direct3DCreate9(D3D_SDK_VERSION);
@@ -317,7 +322,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 									hr = D3DXCreateSprite(dxDevice, &spriteDX);
 									if (SUCCEEDED(hr))
 									{
-										//testSprite->Reset();
+										map->Reset();
+										/*
 										for (int y = 0; y < 16; y++)
 										{
 											for (int x = 0; x < 16; x++)
@@ -325,6 +331,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 												tileSprite[y][x]->Reset();
 											}
 										}
+										*/
 									}
 								}
 							}
@@ -339,12 +346,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 	}
 
 	// 텍스쳐 해제는 스프라이트가 파괴될 때
+	map->Deinit();
+	delete map;
 	/*
-	if (NULL != testSprite)
-	{
-		delete testSprite;
-	}
-	*/
 	for (int y = 0; y < 16; y++)
 	{
 		for (int x = 0; x < 16; x++)
@@ -355,6 +359,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 			}
 		}
 	}
+	*/
 
 	if (dxDevice)
 	{
