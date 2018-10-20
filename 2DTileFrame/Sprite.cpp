@@ -133,6 +133,54 @@ void Sprite::Init(std::wstring fileName,
 	}
 }
 
+void Sprite::Init(std::wstring fileName,
+	int x, int y, int width, int height, float frameInterval,
+	LPDIRECT3DDEVICE9 dxDevice,
+	ID3DXSprite * spriteDX)
+{
+	_fileName = fileName;
+	_dxDevice = dxDevice;
+	_spriteDX = spriteDX;
+
+	HRESULT hr;
+	{
+		// 파일로 부터 이미지의 너비와 높이를 얻는다
+		hr = D3DXGetImageInfoFromFile(fileName.c_str(), &_texInfo);
+		if (FAILED(hr))
+		{
+			return;
+		}
+
+		// 이미지데이타 로드
+		hr = D3DXCreateTextureFromFileEx(dxDevice,
+			fileName.c_str(),
+			_texInfo.Width, _texInfo.Height,
+			1,
+			0,
+			D3DFMT_UNKNOWN,
+			D3DPOOL_DEFAULT,
+			D3DX_DEFAULT,
+			D3DX_DEFAULT,
+			D3DCOLOR_ARGB(255, 255, 255, 255),
+			&_texInfo,
+			NULL,
+			&_textureDX);
+		if (FAILED(hr))
+		{
+			return;
+		}
+
+		Frame* frame = new Frame();
+		frame->Init(_spriteDX, _textureDX,
+			x, y, width, height, frameInterval,
+			D3DCOLOR_ARGB(255, 255, 255, 255), 1.0f);
+		_frameList.push_back(frame);
+		
+		_frameIdx = 0;
+		_frameDuration = 0.0f;
+	}
+}
+
 void Sprite::Update(float deltaTime)
 {
 	// 현재 프레임이 출력된 후 흐른 시간

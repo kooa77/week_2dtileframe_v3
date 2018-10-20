@@ -2,6 +2,7 @@
 #include <d3dx9.h>
 #include "GameTimer.h"
 #include "Sprite.h"
+#include "Map.h"
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -150,60 +151,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 	{
 		return 0;
 	}
-
-	// 이미지 로드
-	/*
-	IDirect3DTexture9* textureDX;
-	RECT textureRect;
-	D3DCOLOR textureColor;
-	*/
-
-	int tileMapIndex[16][16];
-	int idx = 0;
-	for (int y = 0; y < 16; y++)
-	{
-		for (int x = 0; x < 16; x++)
-		{
-			//tileMapIndex[y][x] = rand() % 4;
-			//tileMapIndex[y][x] = (idx++) % 4;
-			tileMapIndex[y][x] = idx++;	// 0 -> 255
-		}
-	}	
-
+	
 	Map* map = new Map();
-	map->Init();
-	/*
-	// 스프라이트를  생성
-	LPCWSTR fileName = L"../Resources/Images/PathAndObjects.png";
-	Sprite* tileSprite[16][16];
-	for (int y = 0; y < 16; y++)
-	{
-		for (int x = 0; x < 16; x++)
-		{
-			tileSprite[y][x] = new Sprite();
-			LPCWSTR scriptName = L"Test.json";
-			
-			int index = tileMapIndex[y][x];
-			switch (index)
-			{
-			case 0:
-				scriptName = L"PlayerLeft.json";
-				break;
-			case 1:
-				scriptName = L"PlayerRight.json";
-				break;
-			case 2:
-				scriptName = L"PlayerUp.json";
-				break;
-			case 3:
-				scriptName = L"PlayerDown.json";
-				break;
-			}
-
-			tileSprite[y][x]->Init(fileName, scriptName, dxDevice, spriteDX);
-		}
-	}
-	*/
+	map->Init(dxDevice, spriteDX);
 
 	float frameInterval = 1.0f / 60.0f;
 	float frameTime = 0.0f;
@@ -215,7 +165,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 	while (WM_QUIT != msg.message)
 	{
 		// PeekMessage : 메시지가 없으면, 윈도우가 아닌 응용 프로그램에 제어권을 반환한다.
-		//	PM_REMOVE : 메시지큐에서 사용한 메시지 제거
+		// PM_REMOVE : 메시지큐에서 사용한 메시지 제거
 		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);		// 키보드 변환 수행. 키 코드를 문자 메시지로 변환
@@ -227,22 +177,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 			float deltaTime = gameTimer.GetDeltaTime();		// 지난 프레임부터 지금까지 흐른 시간의 차이
 
 			map->Update(deltaTime);
-			/*
-			for (int y = 0; y < 16; y++)
-			{
-				for (int x = 0; x < 16; x++)
-				{
-					tileSprite[y][x]->Update(deltaTime);
-				}
-			}
-			*/
-
+			
 			frameTime += deltaTime;	// 시간이 흐른다.
 			if (frameInterval <= frameTime)
 			{
 				frameTime = 0.0f;
 
-				dxDevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 128, 0), 0.0f, 0);	// 매 프레임마다 화면의 색을 채운다.
+				dxDevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(256, 0, 0), 0.0f, 0);	// 매 프레임마다 화면의 색을 채운다.
 				{
 					dxDevice->BeginScene();
 					{
@@ -250,28 +191,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 						spriteDX->Begin(D3DXSPRITE_ALPHABLEND);
 						{
 							map->Render();
-							/*
-							float startX = 0.0f;
-							float startY = 0.0f;
-							float posX = startX;
-							float posY = startY;
-							int tileSize = 32;
-							for (int y = 0; y < 16; y++)
-							{
-								for (int x = 0; x < 16; x++)
-								{
-									// 현재 : 스프라이트 하나를 16*16개 출력
-									// 변경 : 16*16개의 다른 스프라이트를 출력
-									//testSprite->SetPosition(posX, posY);
-									//testSprite->Render();
-									tileSprite[y][x]->SetPosition(posX, posY);
-									tileSprite[y][x]->Render();
-									posX += tileSize;
-								}
-								posX = startX;
-								posY += tileSize;
-							}
-							*/
 						}
 						spriteDX->End();
 					}
@@ -295,15 +214,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 							// 디바이스와 그 외 디바이스를 통해생성된 모든 리소스를 복구
 							// 1. 기존에 만들어진 것들을 모두 리셋
 							map->Release();
-							/*
-							for (int y = 0; y < 16; y++)
-							{
-								for (int x = 0; x < 16; x++)
-								{
-									tileSprite[y][x]->Release();
-								}
-							}
-							*/
 
 							// 2. 새로 생성 (복구)
 							direct3d = Direct3DCreate9(D3D_SDK_VERSION);
@@ -323,15 +233,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 									if (SUCCEEDED(hr))
 									{
 										map->Reset();
-										/*
-										for (int y = 0; y < 16; y++)
-										{
-											for (int x = 0; x < 16; x++)
-											{
-												tileSprite[y][x]->Reset();
-											}
-										}
-										*/
 									}
 								}
 							}
@@ -345,21 +246,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 		}
 	}
 
-	// 텍스쳐 해제는 스프라이트가 파괴될 때
 	map->Deinit();
 	delete map;
-	/*
-	for (int y = 0; y < 16; y++)
-	{
-		for (int x = 0; x < 16; x++)
-		{
-			if (NULL != tileSprite[y][x])
-			{
-				delete tileSprite[y][x];
-			}
-		}
-	}
-	*/
 
 	if (dxDevice)
 	{
