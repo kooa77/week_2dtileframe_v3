@@ -1,3 +1,7 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <fstream>
+#include <string>
 #include "Sprite.h"
 #include "Map.h"
 
@@ -34,26 +38,50 @@ void Map::Init(LPDIRECT3DDEVICE9 dxDevice, ID3DXSprite* spriteDX)
 		srcY += tileSize;
 	}
 
+	// Map 생성
 	int tileMapIndex[16][16];
+	// 스크립트 대체
+	/*
 	int idx = 0;
 	for (int y = 0; y < 16; y++)
 	{
 		for (int x = 0; x < 16; x++)
 		{
-			//tileMapIndex[y][x] = idx++;
-			tileMapIndex[y][x] = 17;
+			tileMapIndex[y][x] = idx++;
+		}
+	}
+	*/
+	{
+		std::string fileName = "map.csv";
+		std::vector<std::string> recordList;
+		std::ifstream infile(fileName);
+		if (true == infile.is_open())	// 파일이 정상적으로 열렸으면
+		{
+			char recordString[1000];
+			while (false == infile.eof())	// 파일이 끝날 때 까지 순환
+			{
+				// 한줄씩 읽어서 리스트에 저장
+				infile.getline(recordString, 1000);
+				recordList.push_back(recordString);
+			}
+		}
+
+		// 레코드를 토큰으로 분리해서 게임에 적용
+		char record[1000];
+		for (int y = 0; y < 16; y++)
+		{
+			// 한줄 record에 복사
+			strcpy(record, recordList[y].c_str());
+			char* token = strtok(record, ",");
+			for (int x = 0; x < 16; x++)
+			{
+				int tileIndex = atoi(token);
+				tileMapIndex[y][x] = tileIndex;
+				token = strtok(NULL, ",");
+			}
 		}
 	}
 	
-	//0,1,2,1...
-	//16,17,18,1...
-	tileMapIndex[0][0] = 0;
-	tileMapIndex[0][1] = 1;
-	tileMapIndex[0][2] = 2;
-	tileMapIndex[1][0] = 16;
-	tileMapIndex[1][1] = 17;
-	tileMapIndex[1][2] = 18;
-
 	// 스프라이트를  생성
 	//LPCWSTR fileName = L"../Resources/Images/PathAndObjects.png";
 	for (int y = 0; y < 16; y++)
@@ -62,29 +90,6 @@ void Map::Init(LPDIRECT3DDEVICE9 dxDevice, ID3DXSprite* spriteDX)
 		{
 			int spriteIndex = tileMapIndex[y][x];
 			_tileSprite[y][x] = _spriteList[spriteIndex];
-			/*
-			_tileSprite[y][x] = new Sprite();
-			LPCWSTR scriptName = L"Test.json";
-
-			int index = tileMapIndex[y][x];
-			switch (index)
-			{
-			case 0:
-				scriptName = L"PlayerLeft.json";
-				break;
-			case 1:
-				scriptName = L"PlayerRight.json";
-				break;
-			case 2:
-				scriptName = L"PlayerUp.json";
-				break;
-			case 3:
-				scriptName = L"PlayerDown.json";
-				break;
-			}
-
-			_tileSprite[y][x]->Init(fileName, scriptName, dxDevice, spriteDX);
-			*/
 		}
 	}
 }
