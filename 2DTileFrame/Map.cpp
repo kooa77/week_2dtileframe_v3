@@ -21,12 +21,48 @@ void Map::Init(LPDIRECT3DDEVICE9 dxDevice, ID3DXSprite* spriteDX)
 	int srcY = 0;
 	int tileSize = 32;
 	LPCWSTR fileName = L"../Resources/Images/PathAndObjects.png";
+	IDirect3DTexture9* textureDX;
+	D3DXIMAGE_INFO texInfo;
+
+	// 파일로 부터 이미지의 너비와 높이를 얻는다
+	HRESULT hr = D3DXGetImageInfoFromFile(fileName, &texInfo);
+	if (FAILED(hr))
+	{
+		return;
+	}
+
+	// 이미지데이타 로드
+	hr = D3DXCreateTextureFromFileEx(dxDevice,
+		fileName,
+		texInfo.Width, texInfo.Height,
+		1,
+		0,
+		D3DFMT_UNKNOWN,
+		D3DPOOL_DEFAULT,
+		D3DX_DEFAULT,
+		D3DX_DEFAULT,
+		D3DCOLOR_ARGB(255, 255, 255, 255),
+		&texInfo,
+		NULL,
+		&textureDX);
+	if (FAILED(hr))
+	{
+		return;
+	}
+
+
 	for (int y = 0; y < 16; y++)
 	{
 		for (int x = 0; x < 16; x++)
 		{
 			Sprite* sprite = new Sprite();
+			/*
 			sprite->Init(fileName,
+				srcX, srcY, tileSize, tileSize, 1.0f,
+				dxDevice, spriteDX);
+			*/
+			sprite->Init(
+				textureDX, texInfo,
 				srcX, srcY, tileSize, tileSize, 1.0f,
 				dxDevice, spriteDX);
 			_spriteList.push_back(sprite);

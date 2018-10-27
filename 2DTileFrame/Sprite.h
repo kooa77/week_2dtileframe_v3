@@ -30,6 +30,13 @@ public:
 		std::wstring scriptFilename,
 		LPDIRECT3DDEVICE9 dxDevice,
 		ID3DXSprite * spriteDX);
+
+	void Init(
+		IDirect3DTexture9* textureDX,
+		D3DXIMAGE_INFO texInfo,
+		int x, int y, int width, int height, float frameInterval,
+		LPDIRECT3DDEVICE9 dxDevice,
+		ID3DXSprite * spriteDX);
 	
 	void Init(std::wstring fileName,
 		int x, int y, int width, int height, float frameInterval,

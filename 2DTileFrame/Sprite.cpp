@@ -181,6 +181,29 @@ void Sprite::Init(std::wstring fileName,
 	}
 }
 
+void Sprite::Init(
+	IDirect3DTexture9* textureDX,
+	D3DXIMAGE_INFO texInfo,
+	int x, int y, int width, int height, float frameInterval,
+	LPDIRECT3DDEVICE9 dxDevice,
+	ID3DXSprite * spriteDX)
+{
+	_dxDevice = dxDevice;
+	_spriteDX = spriteDX;
+
+	_textureDX = textureDX;
+	_texInfo = texInfo;
+
+	Frame* frame = new Frame();
+	frame->Init(_spriteDX, _textureDX,
+		x, y, width, height, frameInterval,
+		D3DCOLOR_ARGB(255, 255, 255, 255), 1.0f);
+	_frameList.push_back(frame);
+
+	_frameIdx = 0;
+	_frameDuration = 0.0f;
+}
+
 void Sprite::Update(float deltaTime)
 {
 	// 현재 프레임이 출력된 후 흐른 시간
